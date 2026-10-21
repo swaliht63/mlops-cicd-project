@@ -1,0 +1,55 @@
+from pathlib import Path
+
+import joblib
+from sklearn.datasets import load_breast_cancer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+MODEL_DIR = ROOT_DIR / "artifacts"
+MODEL_PATH = MODEL_DIR / "model.joblib"
+
+
+def train_model():
+    data = load_breast_cancer(as_frame=True)
+    X = data.data
+    y = data.target
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y,
+    )
+
+    model = RandomForestClassifier(
+        n_estimators=100,
+        random_state=42,
+    )
+    model.fit(X_train, y_train)
+
+    predictions = model.predict(X_test)
+    accuracy = accuracy_score(y_test, predictions)
+
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    joblib.dump(
+        {
+            "model": model,
+            "feature_names": list(X.columns),
+            "target_names": list(data.target_names),
+            "accuracy": accuracy,
+        },
+        MODEL_PATH,
+    )
+
+    print(f"Test accuracy: {accuracy:.3f}")
+    print(f"Saved model to: {MODEL_PATH}")
+
+    return accuracy
+
+
+if __name__ == "__main__":
+    train_model()

@@ -1,0 +1,4 @@
+-r requirements-runtime.txt
+mlflow==3.17.2
+pytest==9.1.1
+httpx2==2.16.0

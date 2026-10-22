@@ -5,3 +5,7 @@ __pycache__/
 mlruns/
 artifacts/
 .env
+mlflow.db
+mlflow.db-shm
+mlflow.db-wal
+

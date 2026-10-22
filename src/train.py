@@ -5,6 +5,8 @@ from sklearn.datasets import load_breast_cancer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+import mlflow
+
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -32,7 +34,15 @@ def train_model():
     model.fit(X_train, y_train)
 
     predictions = model.predict(X_test)
-    accuracy = accuracy_score(y_test, predictions)
+    accuracy = float(accuracy_score(y_test, predictions))
+
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    
+    with mlflow.start_run():
+        mlflow.log_param("model_type", "RandomForestClassifier")
+        mlflow.log_param("n_estimators", 100)
+        mlflow.log_param("random_state", 42)
+        mlflow.log_metric("accuracy", accuracy)
 
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(

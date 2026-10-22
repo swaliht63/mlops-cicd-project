@@ -37,3 +37,12 @@ jobs:
           path: artifacts/model.joblib
           if-no-files-found: error
           retention-days: 30
+
+      - name: Save MLflow tracking database
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-tracking-database
+          path: mlflow.db
+          if-no-files-found: error
+          retention-days: 30
+

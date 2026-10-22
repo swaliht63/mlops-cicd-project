@@ -16,6 +16,9 @@ jobs:
   promote:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Download candidate model from retraining run
         uses: actions/download-artifact@v4
         with:

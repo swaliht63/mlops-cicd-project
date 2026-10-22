@@ -1,6 +1,6 @@
 from src.train import train_model
 
 
-def test_training_creates_model():
+def test_training_creates_model_and_meets_quality_threshold():
     accuracy = train_model()
-    assert 0.8 <= accuracy <= 1.0
+    assert accuracy >= 0.90

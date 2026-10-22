@@ -6,9 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src ./src
-COPY artifacts ./artifacts
-
-EXPOSE 8000
+RUN python -m src.train
 
 EXPOSE 8000
 

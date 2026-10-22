@@ -6,6 +6,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 import mlflow
+from datetime import datetime, timezone
+
 
 
 
@@ -37,7 +39,7 @@ def train_model():
     accuracy = float(accuracy_score(y_test, predictions))
 
     mlflow.set_tracking_uri("sqlite:///mlflow.db")
-    
+
     with mlflow.start_run():
         mlflow.log_param("model_type", "RandomForestClassifier")
         mlflow.log_param("n_estimators", 100)
@@ -48,6 +50,7 @@ def train_model():
     joblib.dump(
         {
             "model": model,
+            "model_version": datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
             "feature_names": list(X.columns),
             "target_names": list(data.target_names),
             "accuracy": accuracy,

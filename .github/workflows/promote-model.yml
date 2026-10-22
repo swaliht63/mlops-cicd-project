@@ -1,0 +1,36 @@
+name: Promote Model
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Successful Model Retraining workflow run ID"
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download candidate model from retraining run
+        uses: actions/download-artifact@v4
+        with:
+          name: validated-model
+          path: candidate
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create versioned model release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          test -f candidate/model.joblib
+          TAG="model-run-${RUN_ID}"
+          gh release create "$TAG" candidate/model.joblib \
+            --title "Validated model from run ${RUN_ID}" \
+            --notes "Candidate model passed the retraining workflow's test and quality checks. Source workflow run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}"

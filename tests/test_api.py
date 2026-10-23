@@ -12,6 +12,7 @@ def test_health_endpoint():
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+    assert response.headers["x-request-id"]
 
 
 def test_ready_endpoint():

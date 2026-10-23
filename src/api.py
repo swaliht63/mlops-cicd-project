@@ -5,6 +5,43 @@ import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
+import json
+import logging
+import time
+import uuid
+from datetime import datetime, timezone
+
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+
+        for key in (
+            "event",
+            "request_id",
+            "method",
+            "path",
+            "status_code",
+            "duration_ms",
+        ):
+            if hasattr(record, key):
+                log_entry[key] = getattr(record, key)
+
+        return json.dumps(log_entry)
+
+
+handler = logging.StreamHandler()
+handler.setFormatter(JsonFormatter())
+
+logger = logging.getLogger("mlops_api")
+logger.setLevel(logging.INFO)
+logger.handlers.clear()
+logger.addHandler(handler)
+logger.propagate = False
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -38,6 +75,42 @@ app = FastAPI(
     title="Breast Cancer Model API — educational demo",
     lifespan=lifespan,
 )
+
+@app.middleware("http" )
+async def log_requests(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+    start_time = time.perf_counter()
+    status_code = 500
+
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        response.headers["X-Request-ID"] = request_id
+        return response
+    except Exception:
+        logger.exception(
+            "request_failed",
+            extra={
+                "event": "request_failed",
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+            },
+        )
+        raise
+    finally:
+        duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
+        logger.info(
+            "request_complete",
+            extra={
+                "event": "request_complete",
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": status_code,
+                "duration_ms": duration_ms,
+            },
+        )
 
 
 class PredictionRequest(BaseModel):

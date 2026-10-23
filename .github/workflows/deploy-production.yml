@@ -1,0 +1,40 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_ref:
+        description: "Exact validated image, e.g. ghcr.io/swaliht63/mlops-cicd-project:model-..."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Validate image reference
+        env:
+          IMAGE_REF: ${{ inputs.image_ref }}
+        run: |
+          case "$IMAGE_REF" in
+            ghcr.io/swaliht63/mlops-cicd-project:model-*) ;;
+            *)
+              echo "Use the exact model-tagged image from a successful retraining run."
+              exit 1
+              ;;
+          esac
+
+      - name: Trigger Render deployment
+        env:
+          IMAGE_REF: ${{ inputs.image_ref }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          ENCODED_IMAGE=$(python -c "import os, urllib.parse; print(urllib.parse.quote(os.environ['IMAGE_REF'], safe=''))")
+          curl --fail --silent --show-error \
+            --request POST \
+            "${RENDER_DEPLOY_HOOK}?imgURL=${ENCODED_IMAGE}"

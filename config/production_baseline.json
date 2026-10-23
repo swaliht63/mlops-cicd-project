@@ -1,0 +1,11 @@
+{
+  "model_image": "ghcr.io/swaliht63/mlops-cicd-project:model-20261022T161506Z",
+  "metrics": {
+    "accuracy": 0.956,
+    "balanced_accuracy": 0.950,
+    "malignant_precision": 0.951,
+    "malignant_recall": 0.929,
+    "malignant_f1": 0.940
+  },
+  "maximum_allowed_metric_drop": 0.01
+}

@@ -30,6 +30,9 @@ jobs:
       - name: Train candidate model
         run: python -m src.train
 
+      - name: Compare candidate with approved baseline
+        run: python -m src.validate_candidate
+
       - name: Run tests and quality checks
         run: python -m pytest -q
 
